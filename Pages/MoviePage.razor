@@ -1,0 +1,100 @@
+﻿@page "/MoviePage"
+
+@using System.Diagnostics;
+@using Videothek2.BAL
+@using Videothek2.Services
+@inject IJSRuntime JsRuntime
+@inject MainActressService mainActressService
+@inject CategoryService categoryService 
+@inject NavigationManager NavigationManager
+@inject MovieService movieService
+@inject MovieCategoryService movieCategoryService
+
+<h1>Add Movie</h1>
+
+<EditForm Model="@movie" OnValidSubmit="Submit">
+        <DataAnnotationsValidator />
+
+            
+           <label><strong>Actor:</strong></label>
+            <InputSelect @bind-Value="@selectedActressId">
+	            @if (actressList != null)
+	            {
+                    
+			        <option value="0">auswählen</option>
+		            @foreach (var item in actressList)
+		            {
+			            <option value="@item.Id">@item.Firstname / @item.Lastname</option>
+		            }
+	            }	
+            </InputSelect>
+
+            <br/>
+
+            <label><strong>Category:</strong></label>
+            <InputSelect @bind-Value="@selectedCategoryId">
+	            @if (categoryList != null)
+	            {
+                    <option value="0">auswählen</option>
+		            @foreach (var item in categoryList)
+		            {
+			            <option value="@item.Id">@item.Name</option>
+		            }
+	            }	
+            </InputSelect>
+
+            <br/>
+
+            <label><strong>Title:</strong></label>
+            <InputText id="Title" @bind-Value="@movie.Title" />
+
+            <br/>
+
+            <label><strong>Release Date:</strong></label>
+            <InputDate id="Date" @bind-Value="@movie.ReleaseDate" />
+
+            <br/>
+            <br/>
+            <button type="submit">add Movie</button>
+</EditForm>
+
+@code {
+
+
+    public Movie movie = new Movie();
+    public MovieCategory movieCategory = new MovieCategory();
+
+    public int selectedActressId { get; set; }
+    System.Collections.Generic.List<MainActress> actressList;
+
+    public int selectedCategoryId { get; set; }
+    System.Collections.Generic.List<Category> categoryList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Helper.Login.isLogin == false) { NavigationManager.NavigateTo("/"); await JsRuntime.InvokeVoidAsync("alert", "Please login first!"); return; }
+        actressList = await Task.Run(() => mainActressService.GetAllAsync());
+        categoryList = await Task.Run(() => categoryService.GetAllAsync());
+    }
+
+    protected async void Submit()
+    {
+        try
+        {
+           movie.MainActressId = selectedActressId;
+           await movieService.UpdateAsync(movie);
+
+
+           movieCategory.MovieId = movie.Id;
+           movieCategory.CategoryId = selectedCategoryId;
+           await movieCategoryService.UpdateAsync(movieCategory);
+
+           await JsRuntime.InvokeVoidAsync("alert", "Movie created!");
+        }
+        catch (Exception ex)
+        {
+            await JsRuntime.InvokeVoidAsync("alert", ex.Message);
+            return;
+        }
+	} 
+}

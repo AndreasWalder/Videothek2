@@ -1,0 +1,64 @@
+﻿@page "/"
+@using System.Diagnostics;
+@using Videothek2.BAL
+@using Videothek2.Services
+@inject IJSRuntime JsRuntime
+@inject AccountService accountService 
+@inject NavigationManager NavigationManager
+
+<h1>Login</h1>
+
+ <br/>
+
+ <EditForm Model="@account" OnValidSubmit="@HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+            
+       
+            <label><strong class="inputText">Name:</strong></label>
+            <InputText @bind-Value="account.Username" />
+         
+       
+         
+             <label><strong class="inputText">Passwort:</strong></label>
+            <InputText type="password" @bind-Value="account.Password" />
+      
+
+            <br/>
+            <br/>
+
+            <h3>
+            <button type="submit">Login</button>
+            </h3>
+
+        </EditForm>
+
+@code {
+
+    private Account account = new();
+
+    System.Collections.Generic.List<Account> accountList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Helper.Login.isLogin == true) {  JsRuntime.InvokeVoidAsync("alert", "You logged out!"); Helper.Login.isLogin = false; StateHasChanged(); }
+        accountList = await Task.Run(() => accountService.GetAllAsync());
+    }
+
+    private void HandleValidSubmit()
+    {
+        foreach (var item in accountList)
+        {
+            if (item.Username == account.Username && item.Password == account.Password)
+            {
+                Helper.Login.isLogin = true;
+                NavigationManager.NavigateTo("ActorPage");
+            }
+        }
+
+        if (Helper.Login.isLogin == false)
+        {
+            JsRuntime.InvokeVoidAsync("alert", $"<{account.Username}> not authorized to log in!"); // Alert
+        }
+    }
+}

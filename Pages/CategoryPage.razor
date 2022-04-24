@@ -1,0 +1,52 @@
+﻿@page "/CategoryPage"
+
+@using System.Diagnostics;
+@using Videothek2.BAL
+@using Videothek2.Services
+@inject IJSRuntime JsRuntime
+@inject CategoryService categoryService 
+@inject NavigationManager NavigationManager
+
+<h1>Add Category</h1>
+
+<EditForm Model="@category" OnValidSubmit="Submit">
+        <DataAnnotationsValidator />
+
+            
+           <label><strong>Name:</strong></label>
+           <InputText id="FirstName" @bind-Value="@category.Name" />
+
+            <br/>
+            <br/>
+            <button type="submit">add Category</button>
+</EditForm>
+
+@code {
+
+
+    public Category category = new Category();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Helper.Login.isLogin == false) { NavigationManager.NavigateTo("/"); await JsRuntime.InvokeVoidAsync("alert", "Please login first!"); return; }
+    }
+
+    protected async void Submit()
+    {
+        try
+        {
+          
+           await categoryService.UpdateAsync(category);
+           await JsRuntime.InvokeVoidAsync("alert", "Category created!");
+        }
+        catch (Exception ex)
+        {
+            await JsRuntime.InvokeVoidAsync("alert", ex.Message);
+            return;
+        }
+       
+
+
+	}
+    
+}

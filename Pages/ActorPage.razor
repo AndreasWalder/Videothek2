@@ -1,0 +1,61 @@
+﻿@page "/ActorPage"
+
+@using System.Diagnostics;
+@using Videothek2.BAL
+@using Videothek2.Services
+@inject IJSRuntime JsRuntime
+@inject MainActressService mainActressService 
+@inject NavigationManager NavigationManager
+
+<h1>Add Actor</h1>
+
+<EditForm Model="@mainActress" OnValidSubmit="Submit">
+        <DataAnnotationsValidator />
+
+            
+           <label><strong>First Name:</strong></label>
+           <InputText id="FirstName" @bind-Value="@mainActress.Firstname" />
+            <br/>
+
+           <label><strong>Last Name:</strong></label>
+           <InputText id="LastName" @bind-Value="@mainActress.Lastname" />
+           <br/>
+
+            <label><strong>Date of Birth:</strong></label>
+            <InputDate id="Zip" @bind-Value="@mainActress.DateOfBirth" />
+
+            <br/>
+            <br/>
+            <button type="submit">add Actor</button>
+</EditForm>
+
+@code {
+
+
+    public MainActress mainActress = new MainActress();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Helper.Login.isLogin == false) { NavigationManager.NavigateTo("/");  await JsRuntime.InvokeVoidAsync("alert", "Please login first!"); return; }
+    }
+
+    protected async void Submit()
+    {
+        try
+        {
+          
+           await mainActressService.UpdateAsync(mainActress);
+
+           await JsRuntime.InvokeVoidAsync("alert", "Actor created!");
+        }
+        catch (Exception ex)
+        {
+            await JsRuntime.InvokeVoidAsync("alert", ex.Message);
+            return;
+        }
+       
+
+
+	}
+    
+}
